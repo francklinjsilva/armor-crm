@@ -1,12 +1,5 @@
 {
   "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": ".",
-  "cleanUrls": false,
-  "public": true,
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/armor_crm_definitivo.html"
-    }
-  ]
+  "cleanUrls": false
 }
