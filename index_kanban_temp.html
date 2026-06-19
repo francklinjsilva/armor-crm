@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARMOR by Invensica – CRM Pipeline</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #1a1a2e; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, #0a1628 0%, #1a2f5a 100%); color: white; padding: 24px 40px 20px; border-bottom: 4px solid #c8a84b; }
+.header-logo { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #c8a84b; margin-bottom: 4px; }
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+.header p { font-size: 12px; color: #a0aec0; margin-bottom: 12px; }
+.header-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+.meta-pill { background: rgba(200,168,75,0.15); border: 1px solid rgba(200,168,75,0.4); color: #c8a84b; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+#cloud-status.cloud-active { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399; }
+#cloud-status.cloud-error { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #f87171; }
+
+/* STATS */
+.stats-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 40px; display: flex; gap: 24px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-num { font-size: 22px; font-weight: 700; color: #1a2f5a; }
+.stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+
+/* TOOLBAR */
+.toolbar { background: #f8fafc; padding: 12px 40px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.toolbar label { font-size: 11px; color: #64748b; font-weight: 600; }
+.toolbar select, .toolbar input { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #1a1a2e; background: white; outline: none; }
+.btn-add { background: #1a2f5a; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 8px; }
+.btn-add:hover { background: #0a1628; }
+.btn-help { background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 4px; }
+.btn-help:hover { background: #059669; }
+.counter { margin-left: auto; font-size: 11px; color: #64748b; font-weight: 600; }
+
+/* KANBAN LAYOUT */
+.kanban-board { display: flex; gap: 16px; padding: 20px 40px; overflow-x: auto; background: #f1f5f9; min-height: calc(100vh - 280px); }
+.kanban-column { background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; flex: 0 0 320px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.kanban-header { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 14px; border-bottom: 2px solid #e2e8f0; border-radius: 10px 10px 0 0; }
+.kanban-title { font-size: 13px; font-weight: 700; color: #1a2f5a; display: flex; justify-content: space-between; align-items: center; }
+.kanban-count { background: #c8a84b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.kanban-cards { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+/* COMPACT CARD */
+.compact-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.compact-card:hover { box-shadow: 0 4px 12px rgba(26,47,90,0.1); transform: translateY(-1px); border-color: #cbd5e1; }
+.compact-card.checked { border-color: #10b981; background: #f0fdf4; }
+.cc-name { font-size: 12px; font-weight: 700; color: #0a1628; line-height: 1.3; margin-bottom: 6px; }
+.cc-info { font-size: 10px; color: #64748b; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.cc-phone { font-size: 10px; color: #10b981; font-weight: 600; cursor: pointer; }
+.cc-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.cc-badge { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: #eef2ff; color: #3730a3; font-weight: 600; }
+
+/* MODAL */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 22, 40, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
+.modal { background: white; padding: 28px; border-radius: 14px; width: 95%; max-width: 700px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2); margin: 40px auto; }
+.modal h3 { font-size: 18px; color: #1a2f5a; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.modal-grid.full { grid-template-columns: 1fr; }
+.modal-form-group { margin-bottom: 12px; }
+.modal-form-group label { display: block; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+.modal-form-group input, .modal-form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.modal-form-group textarea { resize: vertical; min-height: 60px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.modal-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+.modal-btn-cancel { background: #e2e8f0; color: #475569; }
+.modal-btn-save { background: #10b981; color: white; }
+.modal-btn-delete { background: #ef4444; color: white; }
+
+/* PAGE FOOTER */
+.page-footer { background: #0a1628; color: #64748b; text-align: center; padding: 16px; font-size: 11px; margin-top: auto; }
+.page-footer strong { color: #c8a84b; }
+
+@media (max-width: 1200px) {
+  .kanban-board { gap: 12px; padding: 16px 20px; }
+  .kanban-column { flex: 0 0 280px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">ARMOR by Invensica · Departamento Comercial</div>
+  <h1>CRM Pipeline Sincronizado</h1>
+  <p>Vista Kanban de distribuidores. Arrastra para actualizar estado. Haz clic para editar.</p>
+  <div class="header-meta">
+    <div class="meta-pill" id="cloud-status">⏳ Conectando...</div>
+    <div class="meta-pill">📊 Base de 52 prospectos</div>
+    <div class="meta-pill">🇻🇪 Cobertura nacional</div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="stat-total">52</div><div class="stat-label">Empresas totales</div></div>
+  <div class="stat"><div class="stat-num" id="stat-contactados">0</div><div class="stat-label">Contactados</div></div>
+  <div class="stat"><div class="stat-num" id="stat-activos">0</div><div class="stat-label">Clientes activos</div></div>
+  <div class="stat"><div class="stat-num" id="stat-pendientes">0</div><div class="stat-label">Pendientes</div></div>
+</div>
+
+<div class="toolbar">
+  <label>🔍 Filtrar:</label>
+  <select id="filtro-region" onchange="window.actualizarFiltros()">
+    <option value="">Todas las regiones</option>
+    <option value="Nacional">Nacional</option>
+    <option value="Caracas">Caracas</option>
+    <option value="Carabobo">Carabobo</option>
+    <option value="Zulia">Zulia</option>
+    <option value="Lara">Lara</option>
+  </select>
+  <input type="text" id="buscar" placeholder="Buscar empresa..." oninput="window.actualizarFiltros()" style="width: 140px;">
+  <button class="btn-add" onclick="window.abrirModalNuevo()">➕ Nuevo</button>
+  <button class="btn-help" onclick="window.abrirInstrucciones()">❓ Ayuda</button>
+</div>
+
+<div class="kanban-board" id="kanban-board">
+  <!-- Las columnas se generarán con JavaScript -->
+</div>
+
+<!-- MODAL DETALLE/EDITAR -->
+<div id="modal-detalle" class="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Detalles de la Empresa</h3>
+    <div class="modal-grid">
+      <div class="modal-form-group">
+        <label>Nombre</label>
+        <input type="text" id="edit-nombre" readonly>
+      </div>
+      <div class="modal-form-group">
+        <label>Región</label>
+        <input type="text" id="edit-region" readonly>
+      </div>
+    </div>
+    <div class="modal-form-group full">
+      <label>Teléfono/WhatsApp</label>
+      <input type="text" id="edit-telefono">
+    </div>
+    <div class="modal-form-group full">
+      <label>Email</label>
+      <input type="email" id="edit-email">
+    </div>
+    <div class="modal-form-group full">
+      <label>Página Web</label>
+      <input type="text" id="edit-web">
+    </div>
+    <div class="modal-form-group full">
+      <label>Nota Comercial</label>
+      <textarea id="edit-nota" placeholder="Ej. Contactar después del 15, enviar propuesta..."></textarea>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-form-group">
+        <label>Estado</label>
+        <select id="edit-status">
+          <option value="Pendiente">Pendiente</option>
+          <option value="Contactado">Contactado</option>
+          <option value="Activo">Activo</option>
+          <option value="Negociación">Negociación</option>
+          <option value="Descartado">Descartado</option>
+        </select>
+      </div>
+      <div class="modal-form-group">
+        <label>Fecha contacto</label>
+        <input type="date" id="edit-fecha">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="window.cerrarModal()">Cerrar</button>
+      <button class="modal-btn modal-btn-save" onclick="window.guardarEdicion()">💾 Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-footer">
+  <strong>ARMOR by Invensica</strong> · CRM Pipeline v12.0 · Sincronizado con Google Sheets
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4FKD4Lj44BLVfmxFK36WcHGovyYklAY8kTXIKKRhmknmve5LY5iG3LbiTTYem7vy41w/exec";
+const ESTADOS = ["Pendiente", "Contactado", "Activo", "Negociación", "Descartado"];
+let empresas = {};
+let filtroActual = { region: "", busqueda: "" };
+let empresaEnEdicion = null;
+
+// Cargar datos del Google Sheet
+async function cargarDatos() {
+  try {
+    const response = await fetch(SCRIPT_URL);
+    const data = await response.json();
+    empresas = data || {};
+    renderizarKanban();
+    actualizarEstadisticas();
+    updateCloudStatus("🟢 Sincronizado", "cloud-active");
+  } catch(e) {
+    console.error("Error cargando:", e);
+    updateCloudStatus("⚠️ Error de conexión", "cloud-error");
+  }
+}
+
+// Renderizar tablero Kanban
+function renderizarKanban() {
+  const board = document.getElementById("kanban-board");
+  board.innerHTML = "";
+  
+  ESTADOS.forEach(estado => {
+    const col = document.createElement("div");
+    col.className = "kanban-column";
+    col.dataset.estado = estado;
+    
+    let empresasDelEstado = Object.entries(empresas)
+      .filter(([id, emp]) => {
+        if(emp.deleted) return false;
+        const coincideRegion = !filtroActual.region || emp.region === filtroActual.region;
+        const coincideBusqueda = !filtroActual.busqueda || emp.nombre.toLowerCase().includes(filtroActual.busqueda.toLowerCase());
+        return emp.status === estado && coincideRegion && coincideBusqueda;
+      });
+    
+    col.innerHTML = `
+      <div class="kanban-header">
+        <div class="kanban-title">
+          ${estado}
+          <span class="kanban-count">${empresasDelEstado.length}</span>
+        </div>
+      </div>
+      <div class="kanban-cards" data-estado="${estado}"></div>
+    `;
+    
+    const container = col.querySelector(".kanban-cards");
+    empresasDelEstado.forEach(([id, emp]) => {
+      const card = document.createElement("div");
+      card.className = `compact-card ${emp.checked ? 'checked' : ''}`;
+      card.draggable = true;
+      card.dataset.id = id;
+      card.innerHTML = `
+        <div class="cc-name">${emp.nombre}</div>
+        <div class="cc-info">📍 ${emp.region}</div>
+        ${emp.telefono ? `<div class="cc-phone" onclick="window.abrirWhatsapp('${emp.telefono}')" title="Abrir WhatsApp">📱 ${emp.telefono}</div>` : ''}
+        ${emp.web ? `<div class="cc-info"><a href="${emp.web}" target="_blank" style="color: #1a2f5a; text-decoration: none;">🌐 Sitio web</a></div>` : ''}
+        <div class="cc-badges">
+          <span class="cc-badge">${emp.tipo || 'Distribuidor'}</span>
+        </div>
+      `;
+      card.onclick = (e) => { if(e.target.tagName !== 'A') window.abrirModal(id); };
+      card.ondragstart = (e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("id", id); };
+      container.appendChild(card);
+    });
+    
+    container.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; container.style.background = "#e0f2fe"; };
+    container.ondragleave = () => { container.style.background = ""; };
+    container.ondrop = (e) => { 
+      e.preventDefault(); 
+      container.style.background = ""; 
+      const id = e.dataTransfer.getData("id");
+      empresas[id].status = estado;
+      guardarEnSheet(id);
+      cargarDatos();
+    };
+    
+    board.appendChild(col);
+  });
+}
+
+// Modal
+function abrirModal(id) {
+  empresaEnEdicion = id;
+  const emp = empresas[id];
+  document.getElementById("modal-title").textContent = `✏️ ${emp.nombre}`;
+  document.getElementById("edit-nombre").value = emp.nombre;
+  document.getElementById("edit-region").value = emp.region;
+  document.getElementById("edit-telefono").value = emp.telefono || "";
+  document.getElementById("edit-email").value = emp.email || "";
+  document.getElementById("edit-web").value = emp.web || "";
+  document.getElementById("edit-nota").value = emp.nota || "";
+  document.getElementById("edit-status").value = emp.status;
+  document.getElementById("edit-fecha").value = emp.fecha || "";
+  document.getElementById("modal-detalle").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modal-detalle").style.display = "none";
+  empresaEnEdicion = null;
+}
+
+function guardarEdicion() {
+  if(!empresaEnEdicion) return;
+  const emp = empresas[empresaEnEdicion];
+  emp.telefono = document.getElementById("edit-telefono").value;
+  emp.email = document.getElementById("edit-email").value;
+  emp.web = document.getElementById("edit-web").value;
+  emp.nota = document.getElementById("edit-nota").value;
+  emp.status = document.getElementById("edit-status").value;
+  emp.fecha = document.getElementById("edit-fecha").value;
+  guardarEnSheet(empresaEnEdicion);
+  cerrarModal();
+  cargarDatos();
+}
+
+// Google Sheets
+async function guardarEnSheet(id) {
+  await fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify({ action: "update", id: id, data: empresas[id] }),
+    headers: { "Content-Type": "text/plain;charset=utf-8" }
+  });
+}
+
+// Utilidades
+function updateCloudStatus(msg, cls) {
+  const el = document.getElementById("cloud-status");
+  el.textContent = msg;
+  el.className = "meta-pill " + cls;
+}
+
+function actualizarEstadisticas() {
+  let total = 0, contactados = 0, activos = 0, pendientes = 0;
+  Object.values(empresas).forEach(emp => {
+    if(emp.deleted) return;
+    total++;
+    if(emp.status === "Contactado" || emp.status === "Activo" || emp.status === "Negociación") contactados++;
+    if(emp.status === "Activo") activos++;
+    if(emp.status === "Pendiente") pendientes++;
+  });
+  document.getElementById("stat-total").textContent = total;
+  document.getElementById("stat-contactados").textContent = contactados;
+  document.getElementById("stat-activos").textContent = activos;
+  document.getElementById("stat-pendientes").textContent = pendientes;
+}
+
+function actualizarFiltros() {
+  filtroActual.region = document.getElementById("filtro-region").value;
+  filtroActual.busqueda = document.getElementById("buscar").value;
+  renderizarKanban();
+}
+
+function abrirWhatsapp(tel) {
+  const clean = tel.replace(/\D/g, '');
+  window.open(`https://wa.me/${clean}`, "_blank");
+}
+
+window.abrirModalNuevo = () => alert("Función para agregar nuevo prospecto próximamente");
+window.abrirInstrucciones = () => alert("📖 Pipeline Kanban:\\n- Arrastra tarjetas para cambiar estado\\n- Haz clic en una tarjeta para editar\\n- Los cambios se guardan automáticamente en Google Sheets");
+window.abrirModal = abrirModal;
+window.cerrarModal = cerrarModal;
+window.guardarEdicion = guardarEdicion;
+window.actualizarFiltros = actualizarFiltros;
+
+// Iniciar
+window.onload = cargarDatos;
+setInterval(cargarDatos, 15000);
+</script>
+</body>
+</html>
