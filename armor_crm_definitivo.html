@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARMOR by Invensica – CRM Sincronizado</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #1a1a2e; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, #0a1628 0%, #1a2f5a 100%); color: white; padding: 32px 40px 24px; border-bottom: 4px solid #c8a84b; }
+.header-logo { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: #c8a84b; text-transform: uppercase; margin-bottom: 6px; }
+.header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.header p { font-size: 13px; color: #a0aec0; margin-bottom: 16px; }
+.header-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+.meta-pill { background: rgba(200,168,75,0.15); border: 1px solid rgba(200,168,75,0.4); color: #c8a84b; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; transition: 0.3s; }
+#cloud-status.cloud-active { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399; }
+#cloud-status.cloud-error { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #f87171; }
+
+/* STATS BAR */
+.stats-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 16px 40px; display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+.stat { text-align: center; }
+.stat-num { font-size: 26px; font-weight: 700; color: #1a2f5a; line-height: 1; transition: 0.3s; }
+.stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+/* TOOLBAR */
+.toolbar { background: #f8fafc; padding: 14px 40px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
+.toolbar label { font-size: 12px; color: #64748b; font-weight: 600; }
+.toolbar select, .toolbar input[type="text"] { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; color: #1a1a2e; background: white; outline: none; }
+.toolbar select:focus, .toolbar input:focus { border-color: #1a2f5a; }
+.btn-add { background: #1a2f5a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 10px;}
+.btn-add:hover { background: #0a1628; }
+.counter { margin-left: auto; font-size: 13px; color: #64748b; font-weight: 600; }
+.counter span { color: #1a2f5a; font-size: 18px; font-weight: 700; }
+
+/* GRID */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(345px, 1fr)); gap: 20px; padding: 28px 40px; }
+
+/* CARD */
+.card { background: white; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s, transform 0.15s; position: relative; }
+.card:hover { box-shadow: 0 8px 28px rgba(26,47,90,0.13); transform: translateY(-2px); }
+.card.hidden { display: none !important; }
+
+/* Checked State for CRM */
+.card-checked { border-color: #10b981; box-shadow: 0 0 0 1px #10b981; background: #f0fdf4; }
+.card-checked .card-header { background: rgba(16, 185, 129, 0.05); border-bottom-color: #d1fae5; }
+.card-checked .productos-box { background: white; }
+
+.card-header { padding: 15px 18px 11px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-num { font-size: 10px; font-weight: 800; color: #c8a84b; margin-bottom: 3px; letter-spacing: 0.5px; }
+.card-name { font-size: 14px; font-weight: 700; color: #0a1628; line-height: 1.3; }
+.card-razon { font-size: 11px; color: #64748b; margin-top: 2px; font-style: italic; }
+
+/* CRM TOOLBAR INSIDE CARD */
+.crm-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 18px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 10px; }
+.crm-chk-group { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #334155; cursor: pointer; }
+.crm-chk-group input { width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;}
+.crm-select { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; color: #1a1a2e; font-weight: 600; outline: none; flex: 1; }
+.crm-btn-del { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: 0.2s; }
+.crm-btn-del:hover { background: #fecaca; }
+
+.badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+.b-nacional   { background: #e0f2fe; color: #0c4a6e; }
+.b-caracas    { background: #eef2ff; color: #3730a3; }
+.b-miranda    { background: #f5f3ff; color: #4c1d95; }
+.b-carabobo   { background: #d1fae5; color: #065f46; }
+.b-aragua     { background: #ede9fe; color: #5b21b6; }
+.b-zulia      { background: #fef3c7; color: #92400e; }
+.b-falcon     { background: #fff7ed; color: #9a3412; }
+.b-lara       { background: #fce7f3; color: #9d174d; }
+.b-anzoategui { background: #fee2e2; color: #991b1b; }
+.b-monagas    { background: #fee2e2; color: #991b1b; }
+.b-bolivar    { background: #f0fdf4; color: #14532d; }
+.b-barinas    { background: #fff7ed; color: #9a3412; }
+.b-tachira    { background: #dbeafe; color: #1e40af; }
+
+.card-body { padding: 13px 18px; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.info-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; }
+.info-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; min-width: 66px; padding-top: 2px; flex-shrink: 0; }
+.info-val { color: #334155; line-height: 1.45; }
+.info-val a { color: #1a2f5a; text-decoration: none; font-weight: 600; }
+.info-val a:hover { text-decoration: underline; }
+
+.productos-box { background: #f8fafc; border-left: 3px solid #c8a84b; border-radius: 0 6px 6px 0; padding: 7px 11px; margin-top: 3px; font-size: 11.5px; color: #475569; line-height: 1.55; }
+
+.card-footer { padding: 9px 18px; background: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 10.5px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tipo { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; white-space: nowrap; }
+.t-dist    { background: #dbeafe; color: #1e40af; }
+.t-fab     { background: #dcfce7; color: #15803d; }
+.t-fabdist { background: #fef9c3; color: #854d0e; }
+
+/* MODAL */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 22, 40, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+.modal { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; }
+.modal h3 { font-size: 18px; color: #1a2f5a; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+.modal-form-group { margin-bottom: 12px; }
+.modal-form-group label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+.modal-form-group input, .modal-form-group select, .modal-form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.modal-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+.modal-btn-cancel { background: #e2e8f0; color: #475569; }
+.modal-btn-save { background: #c8a84b; color: white; }
+
+@media print {
+  .toolbar, .stats-bar, .crm-bar, .modal-overlay { display: none !important; }
+  .card { break-inside: avoid; box-shadow: none !important; transform: none !important; border: 1px solid #ccc; }
+  body { background: white; }
+  .grid { gap: 12px; padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">ARMOR by Invensica · Departamento Comercial</div>
+  <h1>CRM Sincronizado y Base de Distribuidores</h1>
+  <p>Entorno colaborativo gratuito. Los cambios se guardan y sincronizan directamente con tu Google Sheet.</p>
+  <div class="header-meta">
+    <div class="meta-pill" id="cloud-status">⏳ Conectando con Google Sheets...</div>
+    <div class="meta-pill">🇻🇪 Base Nacional</div>
+    <div class="meta-pill">16 Estados identificados</div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="stat-total">52</div><div class="stat-label">Empresas totales</div></div>
+  <div class="stat"><div class="stat-num" id="stat-contactados">0</div><div class="stat-label">Contactados</div></div>
+  <div class="stat"><div class="stat-num" id="stat-activos">0</div><div class="stat-label">Clientes Activos</div></div>
+  <div class="stat"><div class="stat-num">39</div><div class="stat-label">Distribuidores</div></div>
+  <div class="stat"><div class="stat-num">7</div><div class="stat-label">Fabricantes</div></div>
+</div>
+
+<div class="toolbar">
+  <label>Región</label>
+  <select id="filtro-region" onchange="window.filtrar()">
+    <option value="">Todas las regiones</option>
+    <option value="Nacional">Nacional / Internacional</option>
+    <option value="Caracas">Caracas / Distrito Capital</option>
+    <option value="Miranda">Miranda</option>
+    <option value="Carabobo">Carabobo</option>
+    <option value="Aragua">Aragua</option>
+    <option value="Zulia">Zulia</option>
+    <option value="Falcón">Falcón</option>
+    <option value="Lara">Lara</option>
+    <option value="Anzoátegui">Anzoátegui / Monagas</option>
+    <option value="Bolívar">Bolívar</option>
+    <option value="Barinas">Barinas</option>
+    <option value="Portuguesa">Portuguesa</option>
+    <option value="Mérida">Mérida</option>
+    <option value="Trujillo">Trujillo</option>
+    <option value="Sucre">Sucre</option>
+    <option value="Táchira">Táchira</option>
+  </select>
+
+  <label>Tipo</label>
+  <select id="filtro-tipo" onchange="window.filtrar()">
+    <option value="">Todos</option>
+    <option value="Distribuidor">Distribuidor / Integrador</option>
+    <option value="Fabricante">Fabricante</option>
+    <option value="Fabricante / Distribuidor">Fabricante / Distribuidor</option>
+  </select>
+  
+  <label>Estatus</label>
+  <select id="filtro-status" onchange="window.filtrar()">
+    <option value="">Todos los Estatus</option>
+    <option value="Pendiente">Pendiente</option>
+    <option value="Nuevo Cliente">Nuevo Cliente</option>
+    <option value="Activo">Activo</option>
+    <option value="Reactivado">Reactivado</option>
+    <option value="Descartado">Descartado</option>
+  </select>
+
+  <label>Buscar</label>
+  <input type="text" id="buscar" placeholder="Nombre, ciudad, producto…" oninput="window.filtrar()" style="width:160px;">
+
+  <button class="btn-add" onclick="window.abrirModal()">➕ Nuevo Prospecto</button>
+
+  <div class="counter">Mostrando <span id="cnt">52</span> empresas</div>
+</div>
+
+<div class="grid" id="grid">
+  <!-- TARJETAS BASE DE DATOS ORIGINAL -->
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">01</div><div class="card-name">SIPHECA – Suministros Industriales Pérez Herrera, C.A.</div><div class="card-razon">J-301125169 · Fundada 1993 · 4 sedes nacionales</div></div><span class="badge b-nacional">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Valencia, Maracaibo, Caracas, Pto. Píritu</span></div><div class="productos-box"><strong>Productos:</strong> Botas de seguridad, protección ocular, auditiva, respiratoria, manos, anticaídas, corporal, cascos, emergencias.</div></div>
+    <div class="card-footer"><span>⏰ Horario comercial</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Carabobo" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">02</div><div class="card-name">PRODUSCA, C.A.</div><div class="card-razon">Distribuidor Oficial Safe Work</div></div><span class="badge b-carabobo">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Valencia, Maracaibo, Barcelona, Maracay</span></div><div class="productos-box"><strong>Productos:</strong> Guantes (nitrilo, neopreno, aluminizados, dieléctricos), cascos, respiratoria, anticaídas, botas.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 7:30–16:30</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Aragua" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">03</div><div class="card-name">MAX Industrial, C.A.</div><div class="card-razon">Distribuidor autorizado 3M · Marca Plantacero</div></div><span class="badge b-aragua">Aragua</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Santa Rita, Edo. Aragua.</span></div><div class="productos-box"><strong>Productos:</strong> Calzado industrial (Plantacero), respiradores 3M, guantes, cascos, lentes, arneses.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 08:00–18:00</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Caracas" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">04</div><div class="card-name">Walco Industrial, S.A.</div><div class="card-razon">Fundada 1950 · Líder histórico</div></div><span class="badge b-caracas">Caracas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">La Floresta, Chacao / Boleíta Norte</span></div><div class="productos-box"><strong>Productos:</strong> EPP completo (lentes, cascos, botas), sistemas contra incendios, extintores. Marcas MSA y ANSUL.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 08:00–17:00</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">05</div><div class="card-name">COPERCA, C.A.</div><div class="card-razon">Distribuidor Botas Saga</div></div><span class="badge b-zulia">Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Sector Socorro, Maracaibo, Edo. Zulia</span></div><div class="productos-box"><strong>Productos:</strong> Calzado industrial (Botas Saga), lentes, guantes, cascos, protección auditiva. Sector petrolero.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 08:30–17:30</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Carabobo" data-tipo="Fabricante / Distribuidor">
+    <div class="card-header"><div><div class="card-num">06</div><div class="card-name">Jim Clark® – Creaciones Lo Máximo, C.A.</div><div class="card-razon">Fabricante desde 1982</div></div><span class="badge b-carabobo">Carabobo</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Valencia 2001, Carabobo</span></div><div class="productos-box"><strong>Productos:</strong> Botas de seguridad, uniformes industriales, médicos, culinarios. Marcas World Safety y Safe Step.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 07:00–16:00</span><span class="tipo t-fabdist">Fabricante / Dist.</span></div>
+  </div>
+
+  <div class="card" data-region="Miranda" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">07</div><div class="card-name">Calzados Sicura, C.A.</div><div class="card-razon">Fabricante desde 1992</div></div><span class="badge b-miranda">Miranda</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Guatire, Estado Miranda</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad, protección y trabajo. Certificación COVENIN 39:2003.</div></div>
+    <div class="card-footer"><span>📅 +30 años</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Barinas" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">08</div><div class="card-name">Fábrica de Botas FEVECO</div><div class="card-razon">Desde 1985 · 214K seguidores Instagram</div></div><span class="badge b-barinas">Barinas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barinas, Estado Barinas</span></div><div class="productos-box"><strong>Productos:</strong> Botas de trabajo, industriales y de seguridad. Envíos nacionales e internacionales.</div></div>
+    <div class="card-footer"><span>📅 Fundada 1985</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">09</div><div class="card-name">Calzados Obelisco</div><div class="card-razon">+50 años fabricando</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Estado Lara</span></div><div class="productos-box"><strong>Productos:</strong> Botas de seguridad industrial certificadas, calzado de trabajo, Línea Premium.</div></div>
+    <div class="card-footer"><span>📅 +50 años</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">10</div><div class="card-name">ROCFILD – Creaciones Francis</div><div class="card-razon">Principal fábrica calzado seguridad Lara</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Estado Lara</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad industrial, agroindustrial, militar y policial.</div></div>
+    <div class="card-footer"><span>📍 Barquisimeto</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Fabricante / Distribuidor">
+    <div class="card-header"><div><div class="card-num">11</div><div class="card-name">Foot Safe, C.A.</div><div class="card-razon">J-085393951 · Zona Industrial I</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Estado Lara</span></div><div class="productos-box"><strong>Productos:</strong> Fabricación y distribución de botas de seguridad industrial. Comercialización directa.</div></div>
+    <div class="card-footer"><span>📍 Zona Ind. I</span><span class="tipo t-fabdist">Fabricante / Dist.</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">12</div><div class="card-name">PVCA – Proveedores Venezuela, C.A.</div><div class="card-razon">Dueños marca TRUCK · Importadores directos</div></div><span class="badge b-zulia">Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">San Francisco, Estado Zulia</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad (marca propia TRUCK), EPP general, ferretería industrial.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 07:00–17:00</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Aragua" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">13</div><div class="card-name">Spectrum 2020, C.A.</div><div class="card-razon">Distribuidor Botas Saga</div></div><span class="badge b-aragua">Aragua</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Municipio Mariño, Aragua</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad industrial (distribuidor autorizado Botas Saga). EPP industrial.</div></div>
+    <div class="card-footer"><span>📍 Municipio Mariño</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">14</div><div class="card-name">LG Servicios, C.A.</div><div class="card-razon">Distribuidor Botas Saga</div></div><span class="badge b-zulia">Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Sector Paraíso, Maracaibo</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad industrial (Botas Saga). Sectores: petrolero, minero, eléctrico.</div></div>
+    <div class="card-footer"><span>📍 Maracaibo</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Anzoátegui" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">15</div><div class="card-name">Dist. Botas Saga – Maturín</div><div class="card-razon">Distribuidor autorizado</div></div><span class="badge b-monagas">Monagas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Maturín, Edo. Monagas</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad (Botas Saga). Zona petrolera del oriente venezolano.</div></div>
+    <div class="card-footer"><span>📍 Maturín</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Bolívar" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">16</div><div class="card-name">Dist. Botas Saga – Puerto Ordaz</div><div class="card-razon">Zona Industrial Unare II</div></div><span class="badge b-bolivar">Bolívar</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Puerto Ordaz, Edo. Bolívar</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad (Botas Saga). Sectores: siderúrgico, minero, construcción pesada.</div></div>
+    <div class="card-footer"><span>📍 Puerto Ordaz</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Anzoátegui" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">17</div><div class="card-name">Dist. Botas Saga – El Tigre</div><div class="card-razon">Distribuidor autorizado</div></div><span class="badge b-anzoategui">Anzoátegui</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">El Tigre, Edo. Anzoátegui</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad (Botas Saga). Importante zona petrolera del oriente.</div></div>
+    <div class="card-footer"><span>📍 El Tigre</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Aragua" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">18</div><div class="card-name">ARFESA – Aragua Ferretera, S.A.</div><div class="card-razon">Fundada 1988</div></div><span class="badge b-aragua">Aragua</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">La Victoria, Estado Aragua</span></div><div class="productos-box"><strong>Productos:</strong> Ferretería industrial, EPP general (guantes, cascos, lentes, botas).</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 07:30–17:30</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Falcón" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">19</div><div class="card-name">Suplidora Técnica Industrial, C.A.</div><div class="card-razon">Frente al CRP Paraguaná</div></div><span class="badge b-falcon">⛽ Falcón</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Punto Fijo, Edo. Falcón</span></div><div class="productos-box"><strong>Productos:</strong> Rodamientos, válvulas, herramientas y seguridad industrial para el sector petrolero.</div></div>
+    <div class="card-footer"><span>📍 Punto Fijo</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Falcón" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">20</div><div class="card-name">Suplidora Remafilca, C.A.</div><div class="card-razon">Industria Petrolera</div></div><span class="badge b-falcon">⛽ Falcón</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Punto Fijo, Edo. Falcón</span></div><div class="productos-box"><strong>Productos:</strong> Mangueras y conexiones hidráulicas petroleras, equipos de seguridad industrial, filtros.</div></div>
+    <div class="card-footer"><span>⏰ Lun-Vie 08:00–17:00</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Falcón" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">21</div><div class="card-name">Dist. Botas Saga – Punto Fijo</div><div class="card-razon">Distribuidor autorizado</div></div><span class="badge b-falcon">⛽ Falcón</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Sector Bella Vista, Punto Fijo</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad industrial (Botas Saga). Atiende sector petrolero, petroquímico.</div></div>
+    <div class="card-footer"><span>📍 Punto Fijo</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">22</div><div class="card-name">Safetech Venezuela, C.A.</div><div class="card-razon">EPP Especializado</div></div><span class="badge b-zulia">⛽ Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Maracaibo / Panamá</span></div><div class="productos-box"><strong>Productos:</strong> EPP completo, detección de gases, control de derrames, anticaídas, OMI/SOLAS.</div></div>
+    <div class="card-footer"><span>📍 Maracaibo</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">23</div><div class="card-name">Veneservice, C.A.</div><div class="card-razon">Distribuidor Botas Saga</div></div><span class="badge b-zulia">⛽ Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Sierra Maestra, Maracaibo</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad industrial (Botas Saga). Área del Lago de Maracaibo.</div></div>
+    <div class="card-footer"><span>📍 Sierra Maestra</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Zulia" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">24</div><div class="card-name">Veneservice Cabimas</div><div class="card-razon">Lago de Maracaibo</div></div><span class="badge b-zulia">⛽ Zulia</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Cabimas, Edo. Zulia</span></div><div class="productos-box"><strong>Productos:</strong> Calzado de seguridad (Botas Saga). Alta concentración de trabajadores Oil & Gas.</div></div>
+    <div class="card-footer"><span>📍 Cabimas</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Carabobo" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">25</div><div class="card-name">Fábrica de Calzado InduSim, C.A.</div><div class="card-razon">Tienda online nacional</div></div><span class="badge b-carabobo">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Valencia, Carabobo</span></div><div class="productos-box"><strong>Productos:</strong> Botas de seguridad 100% piel (Nobuck, Nappa hidrofugada), certificadas COVENIN 39:2003.</div></div>
+    <div class="card-footer"><span>📅 +20 años</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Táchira" data-tipo="Fabricante">
+    <div class="card-header"><div><div class="card-num">26</div><div class="card-name">Industrias Saga, C.A.</div><div class="card-razon">Fabricante Botas Saga</div></div><span class="badge b-tachira">⛽ Táchira</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">San Antonio del Táchira</span></div><div class="productos-box"><strong>Productos:</strong> Fabricante original Botas Saga. Red de distribuidores en Venezuela y Colombia.</div></div>
+    <div class="card-footer"><span>📅 Fundada 2006</span><span class="tipo t-fab">Fabricante</span></div>
+  </div>
+
+  <div class="card" data-region="Portuguesa" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">27</div><div class="card-name">EQUIPRO</div><div class="card-razon">Seguridad Industrial y EPP</div></div><span class="badge b-lara">Portuguesa</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Acarigua, Edo. Portuguesa</span></div><div class="productos-box"><strong>Productos:</strong> Botas de seguridad, uniformes, protección auditiva y respiratoria, EPP agroindustrial.</div></div>
+    <div class="card-footer"><span>📍 Acarigua</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Portuguesa" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">28</div><div class="card-name">Dist. Seguridad Ind. Acarigua</div><div class="card-razon">Sector Mamanico, Acarigua</div></div><span class="badge b-lara">Portuguesa</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Acarigua, Edo. Portuguesa</span></div><div class="productos-box"><strong>Productos:</strong> Equipos de seguridad industrial y EPP general. Zona agroindustrial de Portuguesa.</div></div>
+    <div class="card-footer"><span>📍 Acarigua</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">29</div><div class="card-name">KPN Safety – Venezuela</div><div class="card-razon">Multinacional · Oil &amp; Gas</div></div><span class="badge b-nacional">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Venezuela y América Latina</span></div><div class="productos-box"><strong>Productos:</strong> EPP especializado para Oil &amp; Gas, minería, rescate. Guantes (KPN Force), contra incendios.</div></div>
+    <div class="card-footer"><span>🌎 Presencia en 8 países</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Mérida" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">30</div><div class="card-name">ROSTESSCA</div><div class="card-razon">Seguridad y Salud Ocupacional</div></div><span class="badge b-barinas">Mérida</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Ciudad de Mérida, Estado Mérida</span></div><div class="productos-box"><strong>Productos:</strong> Asesoría, EPP completo, venta y recarga de extintores. Sector andino y universitario.</div></div>
+    <div class="card-footer"><span>📍 Mérida</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Trujillo" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">31</div><div class="card-name">Dist. Implementos Seg. Ind.</div><div class="card-razon">Nueva Bolivia y Valera</div></div><span class="badge b-miranda">Trujillo</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Nueva Bolivia y Valera, Edo. Trujillo</span></div><div class="productos-box"><strong>Productos:</strong> Implementos de seguridad, botines, uniformes, productos 3M. Zona agroindustrial.</div></div>
+    <div class="card-footer"><span>📍 Trujillo</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Sucre" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">32</div><div class="card-name">Dist. Implementos Seg. Ind. (A)</div><div class="card-razon">Sector pesquero e industrial</div></div><span class="badge b-anzoategui">Sucre</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Carúpano, Estado Sucre</span></div><div class="productos-box"><strong>Productos:</strong> Conos de seguridad, guantes carnaza, impermeables, jeans industrial, botas.</div></div>
+    <div class="card-footer"><span>📍 Carúpano</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Sucre" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">33</div><div class="card-name">Dist. Calzado e Implementos (B)</div><div class="card-razon">Sector petrolero, eléctrico</div></div><span class="badge b-anzoategui">Sucre</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Carúpano, Estado Sucre</span></div><div class="productos-box"><strong>Productos:</strong> Calzado e implementos para sectores petrolero, eléctrico y metalúrgico. Líderes regionales.</div></div>
+    <div class="card-footer"><span>📍 Carúpano</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Miranda" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">34</div><div class="card-name">Distribuidora Osoroma (Doca Safety)</div><div class="card-razon">Líder Norcentral · Guatire</div></div><span class="badge b-miranda">Miranda</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Guatire, Edo. Miranda</span></div><div class="productos-box"><strong>Productos:</strong> Calzados Sicura, botas PVC Ayala, marca propia DOCA. Representaciones de Moldex y Ansell.</div></div>
+    <div class="card-footer"><span>📍 Guatire</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Fabricante / Distribuidor">
+    <div class="card-header"><div><div class="card-num">35</div><div class="card-name">Orions de Venezuela, C.A.</div><div class="card-razon">Fabricante complementario</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Edo. Lara</span></div><div class="productos-box"><strong>Productos:</strong> Manufactura de guantes petroleros de carnaza. Comercialización de respiradores 3M y botas.</div></div>
+    <div class="card-footer"><span>📍 Barquisimeto</span><span class="tipo t-fabdist">Fabricante / Dist.</span></div>
+  </div>
+
+  <div class="card" data-region="Caracas" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">36</div><div class="card-name">Grupo Solimpex CSS</div><div class="card-razon">Fuerte presencia agropecuaria</div></div><span class="badge b-caracas">Caracas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Boleíta Norte, Municipio Sucre</span></div><div class="productos-box"><strong>Productos:</strong> Botas Good Year, Botas Tácticas, arneses, cascos SIISA, equipos salvavidas.</div></div>
+    <div class="card-footer"><span>📍 Boleíta Norte</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">37</div><div class="card-name">Tonicomsa S.A.</div><div class="card-razon">Mayorista Internacional</div></div><span class="badge b-nacional">Internacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Ecuador. Impacto regional.</span></div><div class="productos-box"><strong>Productos:</strong> +310 categorías de EPP. Distribuidor maestro de 3M, Kimberly Clark, Honeywell, Drager.</div></div>
+    <div class="card-footer"><span>🌎 Latam</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">38</div><div class="card-name">NR Industrial C.A.</div><div class="card-razon">MercadoLíder Platinum</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Cabudare, Estado Lara.</span></div><div class="productos-box"><strong>Productos:</strong> Ferretería general, discos de desbaste (Dewalt), soldadura, botas de PVC Planta Cero.</div></div>
+    <div class="card-footer"><span>📍 Cabudare</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Carabobo" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">39</div><div class="card-name">Ferresoldar Industrial C.A.</div><div class="card-razon">Oxicorte y Soldadura</div></div><span class="badge b-carabobo">Carabobo</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Valencia 2001, Edo. Carabobo</span></div><div class="productos-box"><strong>Productos:</strong> Equipos de soldadura (Miller, Lincoln), herramientas neumáticas, EPP completo.</div></div>
+    <div class="card-footer"><span>📍 Valencia</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Carabobo" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">40</div><div class="card-name">Distribuidora Aveirense C.A.</div><div class="card-razon">Supermercados y Gastronomía</div></div><span class="badge b-carabobo">Carabobo</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Sector La Candelaria, Valencia</span></div><div class="productos-box"><strong>Productos:</strong> Maquinaria para gastronomía y supermercados. Calzado de protección marca EMG.</div></div>
+    <div class="card-footer"><span>📍 Valencia</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">41</div><div class="card-name">Corp. Reyfeca / Tico Maderas</div><div class="card-razon">Consorcio maderero masivo</div></div><span class="badge b-nacional">Oriente</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Bolívar, Monagas, Anzoátegui</span></div><div class="productos-box"><strong>Productos:</strong> Tableros MDF, materiales de construcción, ferretería. Venta transaccional de EPP.</div></div>
+    <div class="card-footer"><span>📍 Oriente</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">42</div><div class="card-name">Industrias Be Safe EPP, C.A.</div><div class="card-razon">Distribuidor Secundario</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Edo. Lara</span></div><div class="productos-box"><strong>Productos:</strong> Proveedor enfocado en el sector EPP, calzado e indumentaria industrial. Segmento "Long Tail".</div></div>
+    <div class="card-footer"><span>📍 Barquisimeto</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">43</div><div class="card-name">Najul Uniformes, C.A.</div><div class="card-razon">Ropa ocupacional y EPP</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Barquisimeto, Edo. Lara</span></div><div class="productos-box"><strong>Productos:</strong> Uniformes corporativos e industriales, ropa de trabajo y complementos de seguridad.</div></div>
+    <div class="card-footer"><span>📍 Barquisimeto</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Falcón" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">44</div><div class="card-name">Supli Industria J&M, C.A.</div><div class="card-razon">Sector Petrolero CRP</div></div><span class="badge b-falcon">⛽ Falcón</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Punta Cardón, Edo. Falcón</span></div><div class="productos-box"><strong>Productos:</strong> Suministros industriales y de protección personal. Posicionamiento en el CRP Paraguaná.</div></div>
+    <div class="card-footer"><span>📍 Punta Cardón</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Aragua" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">45</div><div class="card-name">Suplidora Nicol, C.A.</div><div class="card-razon">Distribuidor Secundario</div></div><span class="badge b-aragua">Aragua</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Maracay, Edo. Aragua</span></div><div class="productos-box"><strong>Productos:</strong> Implementos de seguridad industrial, atendiendo la zona de ensamblaje e industria de Maracay.</div></div>
+    <div class="card-footer"><span>📍 Maracay</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Anzoátegui" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">46</div><div class="card-name">Suministros Sanu, C.A.</div><div class="card-razon">Suplidor Oriente Petrolero</div></div><span class="badge b-monagas">Monagas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Maturín, Edo. Monagas</span></div><div class="productos-box"><strong>Productos:</strong> Proveedor de dotaciones de seguridad para contratistas petroleros en el oriente del país.</div></div>
+    <div class="card-footer"><span>📍 Maturín</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Bolívar" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">47</div><div class="card-name">Guantera Central, C.A.</div><div class="card-razon">Equipos EPP Guayana</div></div><span class="badge b-bolivar">Bolívar</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Puerto Ordaz, Edo. Bolívar</span></div><div class="productos-box"><strong>Productos:</strong> Fuerte enfoque en protección para manos (guantes) y provisión de calzado de seguridad.</div></div>
+    <div class="card-footer"><span>📍 Puerto Ordaz</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Lara" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">48</div><div class="card-name">Maxcam, C.A.</div><div class="card-razon">Distribuidor Industrial</div></div><span class="badge b-lara">Lara</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Cabudare, Edo. Lara</span></div><div class="productos-box"><strong>Productos:</strong> EPP y dotación industrial orientada a agroindustria y manufactura.</div></div>
+    <div class="card-footer"><span>📍 Cabudare</span><span class="tipo t-dist">Distribuidor</span></div>
+  </div>
+
+  <div class="card" data-region="Caracas" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">49</div><div class="card-name">Proelca</div><div class="card-razon">Integrador de Seguridad Electrónica</div></div><span class="badge b-caracas">Caracas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">La Urbina, Caracas</span></div><div class="productos-box"><strong>Productos:</strong> CCTV, control de acceso, alarmas. Posible cliente para dotar a su flotilla de instaladores.</div></div>
+    <div class="card-footer"><span>📍 La Urbina</span><span class="tipo t-dist">Integrador</span></div>
+  </div>
+
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">50</div><div class="card-name">La Tienda de Seguridad (Hikvision Vzla)</div><div class="card-razon">Red Nacional CCTV</div></div><span class="badge b-nacional">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Barquisimeto, Caracas, Acarigua</span></div><div class="productos-box"><strong>Productos:</strong> Equipos Hikvision. Oportunidad táctica de venta corporativa para sus "Hikaliados".</div></div>
+    <div class="card-footer"><span>📍 Nacional</span><span class="tipo t-dist">Integrador</span></div>
+  </div>
+
+  <div class="card" data-region="Caracas" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">51</div><div class="card-name">Facility Venezuela</div><div class="card-razon">Facility Management y Obras Civiles</div></div><span class="badge b-caracas">Caracas</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sede</span><span class="info-val">Caracas, Dto. Capital</span></div><div class="productos-box"><strong>Productos:</strong> Mantenimiento llave en mano, pisos epóxicos hospitalarios. Nicho para Línea Salute.</div></div>
+    <div class="card-footer"><span>📍 Caracas</span><span class="tipo t-dist">Facility</span></div>
+  </div>
+
+  <div class="card" data-region="Nacional" data-tipo="Distribuidor">
+    <div class="card-header"><div><div class="card-num">52</div><div class="card-name">HID Vzla / Abein / Inter-Con Security</div><div class="card-razon">Firmas Transnacionales de Protección</div></div><span class="badge b-nacional">Nacional</span></div>
+    <div class="card-body"><div class="info-row"><span class="info-label">Sedes</span><span class="info-val">Operaciones a nivel nacional</span></div><div class="productos-box"><strong>Productos:</strong> Escoltas, CCTV. Alta demanda de botas corporativas (Línea Centurión).</div></div>
+    <div class="card-footer"><span>📍 Nacional</span><span class="tipo t-dist">Facility / Seg.</span></div>
+  </div>
+</div><!-- /grid -->
+
+<!-- MODAL PARA AGREGAR NUEVO PROSPECTO -->
+<div id="modal-add" class="modal-overlay">
+  <div class="modal">
+    <h3>➕ Agregar Nuevo Prospecto</h3>
+    <div class="modal-form-group">
+      <label>Nombre de la Empresa</label>
+      <input type="text" id="new-name" placeholder="Ej. Distribuidora El Sol C.A." required>
+    </div>
+    <div class="modal-form-group">
+      <label>Razón / Tipo (Breve descripción)</label>
+      <input type="text" id="new-razon" placeholder="Ej. Ferretería Industrial">
+    </div>
+    <div class="modal-form-group">
+      <label>Estado / Región</label>
+      <select id="new-region">
+        <option value="Caracas">Caracas / Distrito Capital</option>
+        <option value="Miranda">Miranda</option>
+        <option value="Carabobo">Carabobo</option>
+        <option value="Aragua">Aragua</option>
+        <option value="Zulia">Zulia</option>
+        <option value="Falcón">Falcón</option>
+        <option value="Lara">Lara</option>
+        <option value="Anzoátegui">Anzoátegui / Monagas</option>
+        <option value="Bolívar">Bolívar</option>
+        <option value="Barinas">Barinas</option>
+        <option value="Portuguesa">Portuguesa</option>
+        <option value="Mérida">Mérida</option>
+        <option value="Trujillo">Trujillo</option>
+        <option value="Sucre">Sucre</option>
+        <option value="Táchira">Táchira</option>
+        <option value="Nacional">Nacional</option>
+      </select>
+    </div>
+    <div class="modal-form-group">
+      <label>Tipo de Cliente</label>
+      <select id="new-tipo">
+        <option value="Distribuidor">Distribuidor</option>
+        <option value="Fabricante">Fabricante</option>
+        <option value="Fabricante / Distribuidor">Fabricante / Distribuidor</option>
+      </select>
+    </div>
+    <div class="modal-form-group">
+      <label>Teléfono o Sede Principal</label>
+      <input type="text" id="new-tel" placeholder="Ubicación o Teléfono">
+    </div>
+    <div class="modal-form-group">
+      <label>Productos Comercializados</label>
+      <textarea id="new-prod" rows="3" placeholder="Ej. Botas, guantes, cascos..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="window.cerrarModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="window.guardarNuevoProspecto()">Guardar en la Nube</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-footer">
+  <strong>ARMOR by Invensica</strong> · Base de Datos y CRM v11.0 · Junio 2026<br>
+  Plataforma colaborativa 100% gratuita vinculada y sincronizada con Google Sheets.
+</div>
+
+<!-- LÓGICA DE GOOGLE SHEETS Y UI -->
+<script>
+// =====================================================================
+// URL EXACTA DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
+// =====================================================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQgJaC8-hbdRCkzgsf3zvqNnEcqQaaO9s6OMf7mUZYd78JhUpw3xRc5B25-sNhixDmxQ/exec";
+
+const localCache = {}; // Memoria local de estados para UI instantánea
+
+function updateCloudStatus(msg, statusClass) {
+    const el = document.getElementById('cloud-status');
+    el.innerHTML = msg;
+    el.className = 'meta-pill ' + statusClass;
+}
+
+// 1. INICIALIZAR DOM (Prepara las 52 tarjetas originales)
+function inicializarDOM() {
+    const cards = document.querySelectorAll('#grid .card');
+    cards.forEach((card, index) => {
+        const id = 'prospect_' + (index + 1).toString().padStart(2, '0');
+        card.id = id;
+        inyectarControlesCRM(card, id);
+    });
+}
+
+function inyectarControlesCRM(card, id) {
+    if (card.querySelector('.crm-bar')) return; // Ya inyectado
+    
+    const status = localCache[id]?.status || 'Pendiente';
+    const checked = localCache[id]?.checked ? 'checked' : '';
+    
+    const crmBar = document.createElement('div');
+    crmBar.className = 'crm-bar';
+    crmBar.innerHTML = `
+        <label class="crm-chk-group">
+        <input type="checkbox" id="chk_${id}" onchange="window.guardarEstado('${id}')" ${checked}>
+        <span>Contactado</span>
+        </label>
+        <select id="sel_${id}" class="crm-select" onchange="window.guardarEstado('${id}')">
+        <option value="Pendiente" ${status==='Pendiente'?'selected':''}>Pendiente</option>
+        <option value="Nuevo Cliente" ${status==='Nuevo Cliente'?'selected':''}>Nuevo Cliente</option>
+        <option value="Activo" ${status==='Activo'?'selected':''}>Activo</option>
+        <option value="Reactivado" ${status==='Reactivado'?'selected':''}>Reactivado</option>
+        <option value="Descartado" ${status==='Descartado'?'selected':''}>Descartado</option>
+        </select>
+        <button class="crm-btn-del" onclick="window.eliminarProspecto('${id}')" title="Descartar y Ocultar">🗑️</button>
+    `;
+    
+    const header = card.querySelector('.card-header');
+    header.insertAdjacentElement('afterend', crmBar);
+    
+    card.dataset.status = status;
+    if(checked) card.classList.add('card-checked');
+}
+
+// 2. CONECTAR Y OBTENER DATOS DE GOOGLE SHEETS
+async function fetchGoogleSheets() {
+    try {
+        const response = await fetch(SCRIPT_URL);
+        const data = await response.json();
+        
+        if(data.error) {
+            updateCloudStatus('🔴 Error: Falta ejecutar setup() en Apps Script', 'cloud-error');
+            return;
+        }
+
+        // Procesar los datos y sincronizar la pantalla
+        for (const id in data) {
+            const prospect = data[id];
+            localCache[id] = prospect;
+            
+            // Si es un prospecto nuevo que añadió un colega y no está en mi pantalla
+            if (prospect.isCustom && !document.getElementById(id) && !prospect.deleted) {
+                crearTarjetaDOM(id, prospect);
+            }
+            
+            actualizarUI(id, prospect);
+        }
+
+        updateCloudStatus('🟢 Sincronizado con Sheets', 'cloud-active');
+        window.actualizarEstadisticas();
+        window.filtrar();
+    } catch (error) {
+        console.error("Error sincronizando:", error);
+        updateCloudStatus('⏳ Sincronizando en segundo plano...', 'cloud-error');
+    }
+}
+
+// 3. FUNCIÓN MAESTRA PARA ENVIAR DATOS AL SHEET
+async function sendToSheet(payload) {
+    try {
+        // Usamos mode: 'no-cors' para evitar errores de bloqueo del navegador
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+        });
+    } catch (e) {
+        console.error("No se pudo guardar en la nube en este momento.", e);
+    }
+}
+
+// 4. ACTUALIZAR INTERFAZ LOCAL
+function actualizarUI(id, data) {
+    const card = document.getElementById(id);
+    if (!card) return;
+    
+    if (data.deleted) {
+        card.classList.add('hidden', 'is-deleted');
+        return;
+    }
+    
+    const chk = document.getElementById(`chk_${id}`);
+    const sel = document.getElementById(`sel_${id}`);
+    
+    if (chk && chk.checked !== data.checked) chk.checked = !!data.checked;
+    if (sel && sel.value !== data.status) sel.value = data.status || 'Pendiente';
+    
+    card.dataset.status = data.status || 'Pendiente';
+    if (data.checked) card.classList.add('card-checked');
+    else card.classList.remove('card-checked');
+}
+
+// 5. EVENTOS: GUARDAR, ELIMINAR, AÑADIR
+window.guardarEstado = function(id) {
+    const isChecked = document.getElementById(`chk_${id}`).checked;
+    const status = document.getElementById(`sel_${id}`).value;
+    const card = document.getElementById(id);
+    
+    // Extraer datos básicos para enviarlos a Excel y no quede en blanco
+    const nombreStr = card ? card.querySelector('.card-name').innerText : '';
+    const regionStr = card ? card.dataset.region : '';
+    const tipoStr = card ? card.dataset.tipo : '';
+    
+    // 1. Actualización visual instantánea
+    localCache[id] = { ...localCache[id], checked: isChecked, status: status };
+    actualizarUI(id, localCache[id]);
+    window.actualizarEstadisticas();
+    
+    // 2. Enviar silenciosamente al Sheet
+    sendToSheet({ 
+        action: 'update', 
+        id: id, 
+        checked: isChecked, 
+        status: status,
+        data: { nombre: nombreStr, region: regionStr, tipo: tipoStr }
+    });
+};
+
+window.eliminarProspecto = function(id) {
+    if(!confirm('¿Seguro que desea ocultar este prospecto para todo el equipo?')) return;
+    
+    // 1. Actualizar visual instantánea
+    const card = document.getElementById(id);
+    if(card) card.classList.add('hidden', 'is-deleted');
+    localCache[id] = { ...localCache[id], deleted: true };
+    window.actualizarEstadisticas();
+
+    // 2. Enviar silenciosamente al Sheet
+    sendToSheet({ action: 'delete', id: id });
+};
+
+// MODAL PARA NUEVOS
+window.abrirModal = () => document.getElementById('modal-add').style.display = 'flex';
+window.cerrarModal = () => document.getElementById('modal-add').style.display = 'none';
+
+window.guardarNuevoProspecto = function() {
+    const nombre = document.getElementById('new-name').value;
+    if(!nombre) return alert('El nombre es obligatorio');
+    
+    const data = {
+        id: 'custom_' + Date.now(),
+        isCustom: true,
+        nombre: nombre,
+        razon: document.getElementById('new-razon').value,
+        region: document.getElementById('new-region').value,
+        tipo: document.getElementById('new-tipo').value,
+        tel: document.getElementById('new-tel').value,
+        prod: document.getElementById('new-prod').value,
+        status: 'Pendiente',
+        checked: false,
+        deleted: false
+    };
+    
+    // 1. Renderizar en la pantalla actual
+    localCache[data.id] = data;
+    crearTarjetaDOM(data.id, data);
+    
+    window.cerrarModal();
+    document.querySelectorAll('#modal-add input, #modal-add textarea').forEach(i => i.value='');
+    
+    // 2. Subir al Sheet
+    sendToSheet({ action: 'add', data: data });
+};
+
+function crearTarjetaDOM(id, data) {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.id = id;
+    div.dataset.region = data.region;
+    div.dataset.tipo = data.tipo;
+    div.dataset.status = data.status || 'Pendiente';
+
+    div.innerHTML = `
+        <div class="card-header">
+        <div><div class="card-num">NUEVO</div><div class="card-name">${data.nombre}</div><div class="card-razon">${data.razon}</div></div>
+        <span class="badge b-nacional">${data.region}</span>
+        </div>
+        <div class="card-body">
+        ${data.tel ? `<div class="info-row"><span class="info-label">Sede/Tel</span><span class="info-val">${data.tel}</span></div>` : ''}
+        <div class="productos-box"><strong>Productos:</strong> ${data.prod || 'No especificado'}</div>
+        </div>
+        <div class="card-footer"><span>Ingresado por Ventas</span><span class="tipo t-dist">${data.tipo}</span></div>
+    `;
+    
+    document.getElementById('grid').prepend(div);
+    inyectarControlesCRM(div, id);
+    actualizarUI(id, data);
+}
+
+// 6. FILTROS Y ESTADISTICAS
+window.filtrar = function() {
+    const region = document.getElementById('filtro-region').value;
+    const tipo = document.getElementById('filtro-tipo').value;
+    const statusFilter = document.getElementById('filtro-status').value;
+    const q = document.getElementById('buscar').value.toLowerCase();
+    
+    let visible = 0;
+    document.querySelectorAll('.card:not(.is-deleted)').forEach(c => {
+        const dr = c.dataset.region || '';
+        const dt = c.dataset.tipo || '';
+        const ds = c.dataset.status || 'Pendiente';
+        const text = c.innerText.toLowerCase();
+        
+        if ((!region || dr === region) && (!tipo || dt === tipo) && (!statusFilter || ds === statusFilter) && (!q || text.includes(q))) { 
+            c.classList.remove('hidden'); 
+            visible++; 
+        } else { 
+            c.classList.add('hidden'); 
+        }
+    });
+    document.getElementById('cnt').textContent = visible;
+};
+
+window.actualizarEstadisticas = function() {
+    let activos = 0, contactados = 0, total = 0;
+    document.querySelectorAll('.card:not(.is-deleted)').forEach(c => {
+        total++;
+        if(c.classList.contains('card-checked')) contactados++;
+        const s = c.dataset.status;
+        if(s === 'Activo' || s === 'Nuevo Cliente' || s === 'Reactivado') activos++;
+    });
+
+    document.getElementById('stat-total').innerText = total;
+    document.getElementById('stat-contactados').innerText = contactados;
+    document.getElementById('stat-activos').innerText = activos;
+};
+
+// BOOTSTRAP (Arranca al cargar)
+window.onload = () => {
+    inicializarDOM();
+    updateCloudStatus('⏳ Conectando a Sheets...', 'cloud-active');
+    
+    // Primera carga
+    fetchGoogleSheets();
+    
+    // Polling: Busca cambios de los colegas cada 15 segundos
+    setInterval(fetchGoogleSheets, 15000); 
+};
+</script>
+</body>
+</html>
