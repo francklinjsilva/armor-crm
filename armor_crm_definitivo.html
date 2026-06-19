@@ -31,6 +31,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #
 .toolbar select:focus, .toolbar input:focus { border-color: #1a2f5a; }
 .btn-add { background: #1a2f5a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 10px;}
 .btn-add:hover { background: #0a1628; }
+.btn-help { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 8px;}
+.btn-help:hover { background: #059669; }
 .counter { margin-left: auto; font-size: 13px; color: #64748b; font-weight: 600; }
 .counter span { color: #1a2f5a; font-size: 18px; font-weight: 700; }
 
@@ -175,6 +177,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #
   <input type="text" id="buscar" placeholder="Nombre, ciudad, producto…" oninput="window.filtrar()" style="width:160px;">
 
   <button class="btn-add" onclick="window.abrirModal()">➕ Nuevo Prospecto</button>
+
+  <button class="btn-help" onclick="window.abrirInstrucciones()">❓ Instrucciones</button>
 
   <div class="counter">Mostrando <span id="cnt">52</span> empresas</div>
 </div>
@@ -550,6 +554,82 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #
   </div>
 </div>
 
+<!-- MODAL INSTRUCCIONES -->
+<div id="modal-instrucciones" class="modal-overlay">
+  <div class="modal" style="max-width: 700px;">
+    <h3>📖 Cómo usar ARMOR CRM</h3>
+    <div style="font-size: 14px; color: #475569; line-height: 1.8;">
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">1️⃣ Ver Base de Datos</h4>
+      <p>La pantalla principal muestra todos los distribuidores, fabricantes y prospectos de Invensica. Cada tarjeta contiene:</p>
+      <ul style="margin: 8px 0 12px 20px;">
+        <li><strong>Nombre:</strong> Razón social de la empresa</li>
+        <li><strong>Descripción:</strong> Tipo y detalles clave</li>
+        <li><strong>Región:</strong> Ubicación geográfica (badge)</li>
+        <li><strong>Productos:</strong> Lo que comercializan</li>
+      </ul>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">2️⃣ Filtrar Prospectos</h4>
+      <p>Usa la barra superior para buscar y filtrar por:</p>
+      <ul style="margin: 8px 0 12px 20px;">
+        <li><strong>Región:</strong> Selecciona un estado (Caracas, Miranda, Carabobo, etc.)</li>
+        <li><strong>Tipo:</strong> Distribuidor, Fabricante, o Fabricante/Distribuidor</li>
+        <li><strong>Estatus:</strong> Pendiente, Nuevo Cliente, Activo, Reactivado, Descartado</li>
+        <li><strong>Búsqueda:</strong> Escribe nombre, ciudad o producto</li>
+      </ul>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">3️⃣ Marcar Contacto</h4>
+      <p>En cada tarjeta hay una casilla "Contactado" para marcar empresas que ya visitaste o contactaste. ✅</p>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">4️⃣ Cambiar Estatus</h4>
+      <p>Usa el dropdown de estado para actualizar:</p>
+      <ul style="margin: 8px 0 12px 20px;">
+        <li><strong>Pendiente:</strong> Sin contacto aún</li>
+        <li><strong>Nuevo Cliente:</strong> Recién contactado, con potencial</li>
+        <li><strong>Activo:</strong> Cliente en operación</li>
+        <li><strong>Reactivado:</strong> Cliente que volvió</li>
+        <li><strong>Descartado:</strong> No aplica para Invensica</li>
+      </ul>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">5️⃣ Agregar Nuevo Prospecto</h4>
+      <p>Haz clic en el botón <strong>➕ Nuevo Prospecto</strong>. Completa:</p>
+      <ul style="margin: 8px 0 12px 20px;">
+        <li>Nombre de la empresa (obligatorio)</li>
+        <li>Descripción breve</li>
+        <li>Estado/Región</li>
+        <li>Tipo (Distribuidor, Fabricante, etc.)</li>
+        <li>Teléfono o ubicación</li>
+        <li>Productos que vende</li>
+      </ul>
+      <p style="color: #ef4444; font-size: 12px;">⚠️ Se guardará automáticamente en Google Sheets</p>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">6️⃣ Sincronización en la Nube</h4>
+      <p>Todos los cambios se guardan automáticamente en tu Google Sheet. El equipo verá en tiempo real:</p>
+      <ul style="margin: 8px 0 12px 20px;">
+        <li>Qué prospectos fueron contactados</li>
+        <li>El estado actual (Pendiente, Activo, etc.)</li>
+        <li>Nuevos prospectos agregados</li>
+      </ul>
+
+      <h4 style="color: #1a2f5a; margin-top: 16px; margin-bottom: 8px;">💡 Tips</h4>
+      <ul style="margin: 8px 0 12px 20px; font-size: 13px;">
+        <li>Actualiza regularmente el estatus para mantener el seguimiento claro</li>
+        <li>Usa el botón 🗑️ para ocultar prospectos que no aplican</li>
+        <li>La búsqueda es instantánea, prueba diferentes combinaciones</li>
+        <li>Accede desde cualquier dispositivo: la data siempre está sincronizada</li>
+      </ul>
+
+      <p style="color: #64748b; font-size: 12px; margin-top: 20px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+        <strong>Versión:</strong> ARMOR by Invensica v11.0 | <strong>Datos:</strong> Sincronizados en Google Sheets
+      </p>
+    </div>
+
+    <div class="modal-actions" style="margin-top: 24px;">
+      <button class="modal-btn modal-btn-cancel" onclick="window.cerrarInstrucciones()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="page-footer">
   <strong>ARMOR by Invensica</strong> · Base de Datos y CRM v11.0 · Junio 2026<br>
   Plataforma colaborativa 100% gratuita vinculada y sincronizada con Google Sheets.
@@ -721,6 +801,10 @@ window.eliminarProspecto = function(id) {
 // MODAL PARA NUEVOS
 window.abrirModal = () => document.getElementById('modal-add').style.display = 'flex';
 window.cerrarModal = () => document.getElementById('modal-add').style.display = 'none';
+
+// MODAL PARA INSTRUCCIONES
+window.abrirInstrucciones = () => document.getElementById('modal-instrucciones').style.display = 'flex';
+window.cerrarInstrucciones = () => document.getElementById('modal-instrucciones').style.display = 'none';
 
 window.guardarNuevoProspecto = function() {
     const nombre = document.getElementById('new-name').value;
