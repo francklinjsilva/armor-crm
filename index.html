@@ -1209,8 +1209,10 @@ function renderizar() {
 
 // Habilitar drop en columnas
 document.addEventListener('DOMContentLoaded', function() {
-  cargarDatos();
-  renderizar();
+  // Pequeño delay para asegurar que el DOM esté completamente listo
+  setTimeout(() => {
+    cargarDatos();
+    renderizar();
   
   document.querySelectorAll('.kanban-cards').forEach(container => {
     container.ondragover = (e) => {
@@ -1236,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderizar();
       }
     };
-  });
+  }, 50);
 });
 
 function filtrar() {
